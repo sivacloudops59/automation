@@ -15,9 +15,8 @@ pipeline {
                 script {
                     // Unset the GITHUB_TOKEN to avoid conflict
                     sh """
-                    unset GITHUB_TOKEN
-                    echo \$GITHUB_TOKEN | gh auth login --with-token
-                    gh repo create \$GITHUB_OWNER/$GITHUB_REPO --private --confirm
+                    echo $GITHUB_TOKEN | gh auth login --with-token
+                    gh repo create $GITHUB_OWNER/$GITHUB_REPO --private --confirm
                     """
                 }
             }
