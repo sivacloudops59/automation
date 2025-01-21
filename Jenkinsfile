@@ -2,6 +2,7 @@ pipeline {
     agent any
     parameters {
         string(name: 'GITHUB_REPO', description: 'Name of the GitHub repository to create')
+        string(name: 'SOURCE_BRANCH', description: 'Name of the source branch to cut the new branch from')
         string(name: 'GITHUB_BRANCH', description: 'Name of the branch to create and protect')
     }
     environment {
