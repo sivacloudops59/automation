@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --public --confirm --description "Automated public repo creation via Jenkins pipeline" --readme
+                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --public --confirm --description "Automated public repo creation via Jenkins pipeline" --add-readme
                     """
                 }
             }
