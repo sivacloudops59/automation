@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_TOKEN = credentials('GITHUB_TOKEN')
+        GITHUB_TOKEN = credentials('GITHUB_TOKEN')  // Assuming token is stored securely in Jenkins
     }
 
     stages {
@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     // Make sure token is correctly passed
-                    echo "GITHUB_TOKEN: $GITHUB_TOKEN"
+                    echo "Token is set"
                 }
             }
         }
@@ -18,11 +18,15 @@ pipeline {
         stage('Create GitHub Repo') {
             steps {
                 script {
-                    // Use here-string to pass token securely to gh
-                    sh "echo $GITHUB_TOKEN | gh auth login --with-token"
-                    
+                    // Login using GitHub CLI with the token from environment
+                    sh '''
+                        gh auth login --with-token <<< "$GITHUB_TOKEN"
+                    '''
+
                     // Create the repository
-                    sh "gh repo create sivacloudops59/JAVA --private --confirm"
+                    sh '''
+                        gh repo create sivacloudops59/JAVA --private --confirm
+                    '''
                 }
             }
         }
