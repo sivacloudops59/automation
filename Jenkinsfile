@@ -7,7 +7,7 @@ pipeline {
     }
     environment {
         GITHUB_TOKEN = credentials('github_token') // Your GitHub token stored in Jenkins
-        GITHUB_OWNER = 'https://github.com/sivacloudops59/ // Change to your GitHub username or organization
+        GITHUB_OWNER = 'https://github.com/sivacloudops59/'
     }
     stages {
         stage('Create GitHub Repository') {
