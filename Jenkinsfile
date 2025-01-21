@@ -20,7 +20,7 @@ pipeline {
                 script {
                     // Login using GitHub CLI with the token from environment
                     sh '''
-                        gh auth login --with-token <<< "$GITHUB_TOKEN"
+                        echo "$GITHUB_TOKEN" | gh auth login --with-token
                     '''
 
                     // Create the repository
