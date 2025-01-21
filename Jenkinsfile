@@ -14,8 +14,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    echo \$GITHUB_TOKEN | gh auth login --with-token || exit 1
-                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --private --confirm || exit 1
+                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --private --confirm
                     """
                 }
             }
