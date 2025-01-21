@@ -3,31 +3,32 @@ pipeline {
     parameters {
         string(name: 'GITHUB_REPO', description: 'Name of the GitHub repository to create')
         string(name: 'SOURCE_BRANCH', description: 'Name of the source branch to cut the new branch from')
-        string(name: 'GITHUB_BRANCH', description: 'Name of the branch to create and protect')
+        string(name: 'NEW_BRANCH', description: 'Name of the new branch to create and protect')
     }
     environment {
         GITHUB_TOKEN = credentials('github_token') // Your GitHub token stored in Jenkins
-        GITHUB_OWNER = 'https://github.com/sivacloudops59/'
+        GITHUB_OWNER = 'your-github-org-or-username' // Change to your GitHub username or organization
     }
     stages {
         stage('Create GitHub Repository') {
             steps {
                 script {
                     sh """
-                    gh auth login --with-token <<< \$GITHUB_TOKEN
+                    echo \$GITHUB_TOKEN | gh auth login --with-token
                     gh repo create \$GITHUB_OWNER/$GITHUB_REPO --private --confirm
                     """
                 }
             }
         }
-        stage('Create and Push Branch') {
+        stage('Create and Push Branch from Source') {
             steps {
                 script {
                     sh """
                     git clone https://github.com/\$GITHUB_OWNER/$GITHUB_REPO.git
                     cd $GITHUB_REPO
-                    git checkout -b $GITHUB_BRANCH
-                    git push origin $GITHUB_BRANCH
+                    git fetch origin $SOURCE_BRANCH
+                    git checkout -b $NEW_BRANCH origin/$SOURCE_BRANCH
+                    git push origin $NEW_BRANCH
                     """
                 }
             }
@@ -36,7 +37,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    gh api -X PUT /repos/\$GITHUB_OWNER/$GITHUB_REPO/branches/$GITHUB_BRANCH/protection --input - <<EOF
+                    gh api -X PUT /repos/\$GITHUB_OWNER/$GITHUB_REPO/branches/$NEW_BRANCH/protection --input - <<EOF
                     {
                       "required_status_checks": null,
                       "enforce_admins": true,
