@@ -1,59 +1,56 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'GITHUB_REPO', description: 'Name of the GitHub repository to create')
-        string(name: 'SOURCE_BRANCH', description: 'Name of the source branch to cut the new branch from (default: main)')
-        string(name: 'NEW_BRANCH', description: 'Name of the new branch to create and protect')
+        string(name: 'EXISTING_REPO', defaultValue: 'automation', description: 'Name of the existing GitHub repository')
+        string(name: 'NEW_REPO', description: 'Name of the new GitHub repository to create')
+        string(name: 'SOURCE_BRANCH', defaultValue: 'main', description: 'Branch in the existing repository to copy')
+        string(name: 'NEW_BRANCH', description: 'Name of the new branch to create in the new repository')
     }
     environment {
-        GITHUB_TOKEN = credentials('github_token') // Your GitHub token stored in Jenkins
-        GITHUB_OWNER = 'sivacloudops59' // Your GitHub username or organization
+        GITHUB_TOKEN = credentials('github_token') // GitHub token stored in Jenkins
+        GITHUB_OWNER = 'sivacloudops59' // Your GitHub username
     }
     stages {
-        stage('Create GitHub Repository') {
+        stage('Create New GitHub Repository') {
             steps {
                 script {
                     sh """
-                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --public --confirm --description "Automated public repo creation via Jenkins pipeline" --add-readme
+                    # Create the new repository
+                    gh repo create \$GITHUB_OWNER/\$NEW_REPO --public --confirm --description "New repo created via Jenkins pipeline"
                     """
                 }
             }
         }
-        stage('Create and Push Branch from Source') {
+        stage('Clone Existing Repository') {
             steps {
                 script {
                     sh """
-                    git clone https://github.com/\$GITHUB_OWNER/\$GITHUB_REPO.git
-                    cd \$GITHUB_REPO
-                    git fetch origin \$SOURCE_BRANCH || exit 0
-                    if [ ! -f README.md ]; then
-                        echo "# Initial commit" > README.md
-                        git add README.md
-                        git commit -m "Initial commit"
-                        git push origin main
-                    fi
+                    # Clone the existing repository
+                    git clone https://\$GITHUB_OWNER:\$GITHUB_TOKEN@github.com/\$GITHUB_OWNER/\$EXISTING_REPO.git
+                    
+                    # Navigate to the repository directory
+                    cd \$EXISTING_REPO
+                    
+                    # Fetch and checkout the source branch
+                    git fetch origin \$SOURCE_BRANCH
+                    git checkout \$SOURCE_BRANCH
+                    """
+                }
+            }
+        }
+        stage('Create and Push New Branch to New Repository') {
+            steps {
+                script {
+                    sh """
+                    # Create a new branch
+                    cd \$EXISTING_REPO
                     git checkout -b \$NEW_BRANCH
-                    git push origin \$NEW_BRANCH
-                    """
-                }
-            }
-        }
-        stage('Set Branch Protection') {
-            steps {
-                script {
-                    sh """
-                    gh api -X PUT /repos/\$GITHUB_OWNER/\$GITHUB_REPO/branches/\$NEW_BRANCH/protection --input - <<EOF
-                    {
-                      "required_status_checks": null,
-                      "enforce_admins": true,
-                      "required_pull_request_reviews": {
-                        "dismiss_stale_reviews": true,
-                        "require_code_owner_reviews": true,
-                        "required_approving_review_count": 1
-                      },
-                      "restrictions": null
-                    }
-                    EOF
+                    
+                    # Change the remote to the new repository
+                    git remote set-url origin https://\$GITHUB_OWNER:\$GITHUB_TOKEN@github.com/\$GITHUB_OWNER/\$NEW_REPO.git
+                    
+                    # Push the new branch to the new repository
+                    git push -u origin \$NEW_BRANCH
                     """
                 }
             }
@@ -61,10 +58,10 @@ pipeline {
     }
     post {
         success {
-            echo 'Public GitHub repository, branch, and protection created successfully!'
+            echo "Successfully created the repository '\$NEW_REPO' and pushed the branch '\$NEW_BRANCH'!"
         }
         failure {
-            echo 'Failed to automate GitHub tasks.'
+            echo "Failed to complete the pipeline tasks."
         }
     }
 }
