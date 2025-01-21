@@ -13,11 +13,9 @@ pipeline {
         stage('Create GitHub Repository') {
             steps {
                 script {
-                    // Unset the GITHUB_TOKEN to avoid conflict
                     sh """
-                    unset GITHUB_TOKEN
-                    echo \$GITHUB_TOKEN | gh auth login --with-token
-                    gh repo create \$GITHUB_OWNER/$GITHUB_REPO --private --confirm
+                    echo \$GITHUB_TOKEN | gh auth login --with-token || exit 1
+                    gh repo create \$GITHUB_OWNER/\$GITHUB_REPO --private --confirm || exit 1
                     """
                 }
             }
@@ -26,11 +24,11 @@ pipeline {
             steps {
                 script {
                     sh """
-                    git clone https://github.com/\$GITHUB_OWNER/$GITHUB_REPO.git
-                    cd $GITHUB_REPO
-                    git fetch origin $SOURCE_BRANCH
-                    git checkout -b $NEW_BRANCH origin/$SOURCE_BRANCH
-                    git push origin $NEW_BRANCH
+                    git clone https://github.com/\$GITHUB_OWNER/\$GITHUB_REPO.git || exit 1
+                    cd \$GITHUB_REPO
+                    git fetch origin \$SOURCE_BRANCH || exit 1
+                    git checkout -b \$NEW_BRANCH origin/\$SOURCE_BRANCH || exit 1
+                    git push origin \$NEW_BRANCH || exit 1
                     """
                 }
             }
@@ -39,7 +37,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    gh api -X PUT /repos/\$GITHUB_OWNER/$GITHUB_REPO/branches/$NEW_BRANCH/protection --input - <<EOF
+                    gh api -X PUT /repos/\$GITHUB_OWNER/\$GITHUB_REPO/branches/\$NEW_BRANCH/protection --input - <<EOF
                     {
                       "required_status_checks": null,
                       "enforce_admins": true,
