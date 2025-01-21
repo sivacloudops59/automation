@@ -6,7 +6,7 @@ pipeline {
         string(name: 'NEW_BRANCH', description: 'Name of the new branch to create and protect')
     }
     environment {
-        GITHUB_TOKEN = credentials('github_token') // Your GitHub token stored in Jenkins
+        GITHUB_TOKEN = credentials('GITHUB_TOKEN') // Your GitHub token stored in Jenkins
         GITHUB_OWNER = 'sivacloudops59' // Change to your GitHub username or organization
     }
     stages {
